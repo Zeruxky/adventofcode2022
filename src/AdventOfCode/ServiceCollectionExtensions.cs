@@ -1,29 +1,55 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Spectre.Console;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace AdventOfCode
 {
-    public static class ServiceCollectionExtensions
+    internal static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddConsole(this IServiceCollection services)
+        internal static IServiceCollection AddConsole(this IServiceCollection services)
         {
             services.AddSingleton(AnsiConsole.Console);
             return services;
         }
         
-        public static IServiceCollection AddInputDownloader(this IServiceCollection services, IConfiguration configuration)
+        internal static IServiceCollection AddInputDownloader(this IServiceCollection services)
         {
-            services.Configure<AdventOfCodeOptions>(configuration.GetSection(AdventOfCodeOptions.Key));
-            services.AddHttpClient<IInputDownloader, InputDownloader>((provider, client) =>
+            var settings = GetSettings();
+            if (string.IsNullOrEmpty(settings.SessionToken))
             {
-                var options = provider.GetRequiredService<IOptions<AdventOfCodeOptions>>();
-                client.BaseAddress = options.Value.BaseAddress;
-                client.DefaultRequestHeaders.Add("Cookie", options.Value.SessionToken);
+                throw new InvalidOperationException("A session token is required to download puzzle input.");
+            }
+            
+            services.AddHttpClient<IInputDownloader, InputDownloader>(client =>
+            {
+                client.BaseAddress = settings.BaseAddress;
+                client.DefaultRequestHeaders.Add("Cookie", settings.SessionToken);
             });
 
             return services;
         }
+
+        private static AdventOfCodeSettings GetSettings()
+        {
+            using (var file = File.OpenRead("adventofcode_settings.yml"))
+            using (var reader = new StreamReader(file, Encoding.UTF8))
+            {
+                var yml = reader.ReadToEnd();
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                    .Build();
+                var settings = deserializer.Deserialize<AdventOfCodeSettings>(yml);
+                return settings;
+            }
+        }
+    }
+
+    internal record AdventOfCodeSettings
+    {
+        public Uri BaseAddress { get; init; } = new Uri("https://adventofcode.com/2022/");
+
+        public string SessionToken { get; init; } = string.Empty;
     }
 }

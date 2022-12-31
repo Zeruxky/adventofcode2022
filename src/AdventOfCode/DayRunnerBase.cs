@@ -4,7 +4,8 @@ namespace AdventOfCode
 {
     public abstract class DayRunnerBase<T1, T2> : IDayRunner
     {
-        private readonly string inputFileName;
+        private readonly string path;
+        private readonly string directory;
         private readonly ISolver[] solvers;
         private readonly IAnsiConsole console;
         private readonly IInputDownloader downloader;
@@ -13,7 +14,8 @@ namespace AdventOfCode
         {
             this.Day = day;
             this.solvers = solvers.Where(s => s.Day == this.Day).ToArray();
-            this.inputFileName = $"input_{day}.txt";
+            this.directory = "puzzle_input";
+            this.path = Path.Combine(this.directory, $"input_{day}.txt");
             this.console = console;
             this.downloader = downloader;
         }
@@ -47,7 +49,7 @@ namespace AdventOfCode
 
         private Stream GetInputFile()
         {
-            return new FileStream(this.inputFileName, FileMode.Open, FileAccess.Read, FileShare.None);
+            return new FileStream(this.path, FileMode.Open, FileAccess.Read, FileShare.None);
         }
         
         private Part GetPart()
@@ -64,13 +66,18 @@ namespace AdventOfCode
 
         private async Task InitializeAsync(CancellationToken ct)
         {
-            if (File.Exists(this.inputFileName))
+            if (!Directory.Exists(this.directory))
+            {
+                Directory.CreateDirectory(this.directory);
+            }
+            
+            if (File.Exists(this.path))
             {
                 return;
             }
 
             await using (var input = await this.downloader.GetAsStreamAsync(this.Day, ct).ConfigureAwait(false))
-            await using (var file = new FileStream(this.inputFileName, FileMode.Append, FileAccess.Write, FileShare.Read))
+            await using (var file = new FileStream(this.path, FileMode.Append, FileAccess.Write, FileShare.Read))
             {
                 await input.CopyToAsync(file, ct).ConfigureAwait(false);
             }
