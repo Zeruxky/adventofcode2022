@@ -129,6 +129,14 @@ Navigate with your key arrows up and down to select a day and comfirm it with pr
 <!-- ROADMAP -->
 ## Roadmap
 
+- [x] Day 1
+- [x] Day 2
+- [x] Day 3
+- [x] Day 4
+- [x] Day 5
+- [x] Day 6
+- [x] Day 7
+- [x] Day 8
 - [ ] Day 9
 - [ ] Day 10
 - [ ] Day 11
