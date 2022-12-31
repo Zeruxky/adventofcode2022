@@ -27,7 +27,7 @@
 <h3 align="center">AdventOfCode 2022</h3>
 
   <p align="center">
-    Contains all solutions for the [Advent of Code 2022](https://adventofcode.com/). You can solve the puzzles of the AoC 2022 by compiling the program to a CLI tool.
+    Contains all solutions for the <a href="https://adventofcode.com/2022">Advent of Code (AoC) 2022</a>. You can solve the puzzles of the AoC 2022 by compiling the program to a CLI tool.
     <br />
     <a href="https://github.com/Zeruxky/adventofcode2022"><strong>Explore the docs »</strong></a>
     <br />
