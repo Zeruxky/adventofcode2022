@@ -12,6 +12,7 @@ namespace AdventOfCode
         public static readonly Day Six = new Day(nameof(Six), 6);
         public static readonly Day Seven = new Day(nameof(Seven), 7);
         public static readonly Day Eight = new Day(nameof(Eight), 8);
+        public static readonly Day Nine = new Day(nameof(Nine), 9);
 
         private Day(string name, int value)
             : base(name, value)

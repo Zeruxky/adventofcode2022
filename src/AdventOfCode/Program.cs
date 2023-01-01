@@ -9,6 +9,7 @@ using AdventOfCode.Day5;
 using AdventOfCode.Day6;
 using AdventOfCode.Day7;
 using AdventOfCode.Day8;
+using AdventOfCode.Day9;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 
@@ -21,6 +22,7 @@ services.AddDayFive();
 services.AddDaySix();
 services.AddDaySeven();
 services.AddDayEight();
+services.AddDayNine();
 services.AddConsole();
 services.AddInputDownloader();
 
