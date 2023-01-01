@@ -1,22 +1,21 @@
 ﻿namespace AdventOfCode.Day9
 {
-    public class PartOneSolver : ISolver<int>
+    public class PartTwoSolver : ISolver<int>
     {
-        private MapCoordinate headPosition;
-        private MapCoordinate tailPosition;
         private readonly MapCoordinate startPosition;
+        private MapCoordinate headPosition;
+        private readonly MapCoordinate[] knotPositions;
 
-        public PartOneSolver()
+        public PartTwoSolver()
         {
-            this.headPosition = new MapCoordinate();
-            this.tailPosition = new MapCoordinate();
             this.startPosition = new MapCoordinate();
+            this.headPosition = new MapCoordinate();
+            this.knotPositions = Enumerable.Range(0, 9).Select(i => new MapCoordinate()).ToArray();
         }
 
         public Day Day => Day.Nine;
-
-        public Part Part => Part.One;
-
+        public Part Part => Part.Two;
+        
         public async Task<int> SolveAsync(Stream stream, CancellationToken ct)
         {
             if (stream.Length == 0)
@@ -39,72 +38,80 @@
                 var motions = reader.ReadAllAsync(ct);
                 await foreach (var motion in motions.WithCancellation(ct).ConfigureAwait(false))
                 {
-                    visitedPositions.AddRange(this.GetVisitedPositions(motion));
+                    for (var i = 0; i < motion.Steps; i++)
+                    {
+                        this.headPosition = this.headPosition.Move(motion.Direction);
+                        var toFollow = this.headPosition;
+                        for (var j = 0; j < this.knotPositions.Length; j++)
+                        {
+                            this.knotPositions[j] = this.Follow(toFollow, this.knotPositions[j]);
+                            toFollow = knotPositions[j];
+                        }
+
+                        var tail = this.knotPositions.Last();
+                        visitedPositions.Add(tail);
+                    }
                 }
                 
                 return visitedPositions.Count;
             }
         }
-
-        private IEnumerable<MapCoordinate> GetVisitedPositions(Motion motion)
+        
+        private MapCoordinate Follow(MapCoordinate toFollow, MapCoordinate follower)
         {
-            for (var i = 0; i < motion.Steps; i++)
+            var offset = toFollow - follower;
+            if (offset.X is -2 or 2)
             {
-                this.headPosition = this.headPosition.Move(motion.Direction);
-                var offset = this.headPosition - this.tailPosition;
-                if (offset.X is -2 or 2)
-                {
-                    this.tailPosition = AdjustHorizontal(motion);
-                    yield return this.tailPosition;
-                }
-
-                if (offset.Y is -2 or 2)
-                {
-                    this.tailPosition = AdjustVertical(motion);
-                    yield return this.tailPosition;
-                }
+                return AdjustHorizontal(toFollow, follower);
             }
+
+            if (offset.Y is -2 or 2)
+            {
+                return AdjustVertical(toFollow, follower);
+            }
+
+            return follower;
         }
 
-        private MapCoordinate AdjustVertical(Motion motion)
+        private MapCoordinate AdjustVertical(MapCoordinate toFollow, MapCoordinate follower)
         {
-            var offset = this.headPosition - this.tailPosition;
-            if (offset.Y is 2)
+            var offset = toFollow - follower;
+            if (offset.Y == 2)
             {
-                var adjustedPosition = this.MoveDown(motion, offset);
+                var adjustedPosition = this.MoveDown(follower, offset);
                 return adjustedPosition;
             }
 
-            if (offset.Y is -2)
+            if (offset.Y == -2)
             {
-                var adjustedPosition = this.MoveUp(motion, offset);
+                var adjustedPosition = this.MoveUp(follower, offset);
                 return adjustedPosition;
             }
             
             throw new InvalidOperationException($"Offset {offset} is out of range.");
         }
         
-        private MapCoordinate AdjustHorizontal(Motion motion)
+        private MapCoordinate AdjustHorizontal(MapCoordinate toFollow, MapCoordinate follower)
         {
-            var offset = this.headPosition - this.tailPosition;
-            if (offset.X is 2)
+            var offset = toFollow - follower;
+            if (offset.X == 2)
             {
-                var adjustedPosition = this.MoveRight(motion, offset);
+                var adjustedPosition = this.MoveRight(follower, offset);
                 return adjustedPosition;
             }
 
-            if (offset.X is -2)
+            if (offset.X == -2)
             {
-                var adjustedPosition = MoveLeft(motion, offset);
+                var adjustedPosition = MoveLeft(follower, offset);
                 return adjustedPosition;
             }
 
             throw new InvalidOperationException($"Offset {offset} is out of range.");
         }
 
-        private MapCoordinate MoveDown(Motion motion, MapCoordinate offset)
+        private MapCoordinate MoveDown(MapCoordinate follower, MapCoordinate offset)
         {
-            var movedPosition = this.tailPosition.Move(motion.Direction);
+            var movedPosition = follower.MoveDown();
             if (offset.X < 0)
             {
                 movedPosition = movedPosition.MoveLeft();
@@ -118,9 +125,9 @@
             return movedPosition;
         }
 
-        private MapCoordinate MoveUp(Motion motion, MapCoordinate offset)
+        private MapCoordinate MoveUp(MapCoordinate follower, MapCoordinate offset)
         {
-            var movedPosition = this.tailPosition.Move(motion.Direction);
+            var movedPosition = follower.MoveUp();
             if (offset.X < 0)
             {
                 movedPosition = movedPosition.MoveLeft();
@@ -134,9 +141,9 @@
             return movedPosition;
         }
 
-        private MapCoordinate MoveLeft(Motion motion, MapCoordinate offset)
+        private MapCoordinate MoveLeft(MapCoordinate follower, MapCoordinate offset)
         {
-            var movedPosition = this.tailPosition.Move(motion.Direction);
+            var movedPosition = follower.MoveLeft();
             if (offset.Y < 0)
             {
                 movedPosition = movedPosition.MoveUp();
@@ -150,9 +157,9 @@
             return movedPosition;
         }
 
-        private MapCoordinate MoveRight(Motion motion, MapCoordinate offset)
+        private MapCoordinate MoveRight(MapCoordinate follower, MapCoordinate offset)
         {
-            var movedPosition = this.tailPosition.Move(motion.Direction);
+            var movedPosition = follower.MoveRight();
             if (offset.Y < 0)
             {
                 movedPosition = movedPosition.MoveUp();
