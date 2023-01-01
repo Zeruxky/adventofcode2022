@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a directory within the elves <see cref="FileSystem"/>.
     /// </summary>
-    public class Directory
+    public class Directory : IComparable<Directory>
     {
         /// <summary>
         /// The path for the root directory.
@@ -99,6 +99,16 @@
             }
 
             this.files.Add(file);
+        }
+
+        public int CompareTo(Directory? other)
+        {
+            if (other is null)
+            {
+                return 1;
+            }
+
+            return this.Size.CompareTo(other.Size);
         }
     }
 }

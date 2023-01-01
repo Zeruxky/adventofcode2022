@@ -26,11 +26,11 @@
                 var fileSystem = await reader.ReadAsync(ct).ConfigureAwait(false);
                 var unusedSpace = TotalDiskSpace - fileSystem.RootDirectory.Size;
                 var requiredSpace = MinimumDiskSpace - unusedSpace;
-                var directory = fileSystem.GetAllDirectories()
+                var smallestDirectory = fileSystem.GetAllDirectories()
                     .Where(d => d.Size >= requiredSpace)
-                    .OrderBy(d => d.Size)
-                    .First();
-                return directory.Size;
+                    .Min();
+                
+                return smallestDirectory.Size;
             }
         }
     }

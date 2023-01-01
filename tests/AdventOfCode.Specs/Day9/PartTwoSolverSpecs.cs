@@ -38,7 +38,7 @@ namespace AdventOfCode.Specs.Day9
                 "L 5",
                 "R 2",
             };
-            await this.PrepareInputAsync(lines, CancellationToken.None).ConfigureAwait(false);
+            await this.WriteInputAsync(lines, CancellationToken.None).ConfigureAwait(false);
             
             // Act
             var visitedPositions = await this.solver
@@ -64,7 +64,7 @@ namespace AdventOfCode.Specs.Day9
                 "L 25",
                 "U 20",
             };
-            await this.PrepareInputAsync(lines, CancellationToken.None).ConfigureAwait(false);
+            await this.WriteInputAsync(lines, CancellationToken.None).ConfigureAwait(false);
             
             // Act
             var visitedPositions = await this.solver
@@ -80,7 +80,7 @@ namespace AdventOfCode.Specs.Day9
             await this.stream.DisposeAsync().ConfigureAwait(false);
         }
 
-        private async Task PrepareInputAsync(IEnumerable<string> lines, CancellationToken ct)
+        private async Task WriteInputAsync(IEnumerable<string> lines, CancellationToken ct)
         {
             await using (var writer = new StreamWriter(this.stream, Encoding.UTF8, leaveOpen: true))
             {

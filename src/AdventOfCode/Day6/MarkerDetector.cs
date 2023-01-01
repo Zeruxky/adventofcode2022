@@ -2,24 +2,21 @@
 
 namespace AdventOfCode.Day6
 {
-    public abstract class MarkerDetectorBase : IDisposable
-    {
-        private readonly int packetSize;
+    public class MarkerDetector : IDisposable
+    { 
         private readonly StreamReader reader;
         private readonly Encoding encoding = Encoding.UTF8;
-
-        protected MarkerDetectorBase(int packetSize, Stream stream, bool leaveOpen)
-        {
-            this.packetSize = packetSize;
-            this.reader = new StreamReader(stream, this.encoding, leaveOpen: leaveOpen);
-        }
-
         private bool disposed = false;
 
-        public async Task<int> DetectAsync(CancellationToken ct)
+        public MarkerDetector(Stream stream, bool leaveOpen)
+        {
+            this.reader = new StreamReader(stream, this.encoding, leaveOpen: leaveOpen);
+        }
+        
+        public async Task<int> DetectAsync(int packetSize, CancellationToken ct)
         {
             var content = await reader.ReadToEndAsync().ConfigureAwait(false);
-            using (var ringBuffer = new RingBuffer<char>(this.packetSize))
+            using (var ringBuffer = new RingBuffer<char>(packetSize))
             {
                 var position = 0;
                 foreach (var character in content)
@@ -27,7 +24,7 @@ namespace AdventOfCode.Day6
                     ringBuffer.Add(character);
                     position++;
 
-                    if (position <= this.packetSize)
+                    if (position <= packetSize)
                     {
                         continue;
                     }

@@ -7,16 +7,12 @@ namespace AdventOfCode.Day5
     {
         private readonly Encoding encoding = Encoding.UTF8;
         private readonly StreamReader reader;
+        private long readCharacters;
         private bool disposed = false;
 
         public StartingStackReader(Stream stream, bool leaveOpen = false)
         {
             this.reader = new StreamReader(stream, this.encoding, leaveOpen: leaveOpen);
-        }
-
-        public void Reset()
-        {
-            this.reader.BaseStream.Seek(0, SeekOrigin.Begin);
         }
 
         public async IAsyncEnumerable<Stack<Crate>> ReadAllAsync([EnumeratorCancellation]CancellationToken ct)
@@ -76,6 +72,8 @@ namespace AdventOfCode.Day5
                 {
                     yield break;
                 }
+                
+                this.readCharacters += line.Length;
 
                 if (line == Environment.NewLine)
                 {
@@ -84,6 +82,15 @@ namespace AdventOfCode.Day5
 
                 if (line == string.Empty)
                 {
+                    yield break;
+                }
+
+                if (line.Any(char.IsDigit))
+                {
+                    if (this.reader.BaseStream.CanSeek)
+                    {
+                        this.reader.BaseStream.Seek(readCharacters, SeekOrigin.Begin);
+                    }
                     yield break;
                 }
 

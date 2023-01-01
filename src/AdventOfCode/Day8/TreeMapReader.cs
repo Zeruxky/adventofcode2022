@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace AdventOfCode.Day8
@@ -14,41 +15,30 @@ namespace AdventOfCode.Day8
             this.reader = new StreamReader(stream, this.encoding, leaveOpen: leaveOpen);
         }
 
-        public async IAsyncEnumerable<Tree> ReadAllAsync([EnumeratorCancellation] CancellationToken ct)
+        public async Task<TreeMap> ReadAsync(CancellationToken ct)
         {
+            var trees = new List<Tree>();
             var positionY = 1;
-            while (!ct.IsCancellationRequested)
+            while (true)
             {
-                var positionX = 1;
-                
+                ct.ThrowIfCancellationRequested();
                 if (this.reader.EndOfStream)
                 {
-                    yield break;
+                    break;
                 }
 
                 var line = await this.reader.ReadLineAsync().ConfigureAwait(false);
                 if (line is null)
                 {
-                    yield break;
+                    break;
                 }
 
-                foreach (var size in line.Select(character => int.Parse(character.ToString())))
-                {
-                    yield return new Tree()
-                    {
-                        Height = size,
-                        Coordinate = new MapCoordinate()
-                        {
-                            X = positionX++,
-                            Y = positionY,
-                        },
-                    };
-                }
-                
+                trees.AddRange(ParseTrees(line, positionY));
                 positionY++;
             }
             
-            ct.ThrowIfCancellationRequested();
+            var map = new TreeMap(trees);
+            return map;
         }
 
         public void Dispose()
@@ -70,6 +60,25 @@ namespace AdventOfCode.Day8
             }
 
             this.disposed = true;
+        }
+        
+        private static IEnumerable<Tree> ParseTrees(string line, int positionY)
+        {
+            var positionX = 1;
+            foreach (var size in line.Select(character => int.Parse(character.ToString())))
+            {
+                var tree = new Tree()
+                {
+                    Height = size,
+                    Coordinate = new MapCoordinate()
+                    {
+                        X = positionX++,
+                        Y = positionY,
+                    },
+                };
+
+                yield return tree;
+            }
         }
     }
 }

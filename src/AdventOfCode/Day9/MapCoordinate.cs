@@ -16,54 +16,32 @@
 
             return coordinate;
         }
-
-        public MapCoordinate Move(Direction direction)
+        
+        public IEnumerable<Direction> CalculateRoute(MapCoordinate target)
         {
-            if (direction == Direction.Up)
+            var offset = target - this;
+            if (Math.Abs(offset.X) == 2 || Math.Abs(offset.Y) == 2)
             {
-                return this.MoveUp();
+                if (offset.X > 0)
+                {
+                    yield return Direction.Right;
+                }
+                
+                if (offset.X < 0)
+                {
+                    yield return Direction.Left;
+                }
+                
+                if (offset.Y > 0)
+                {
+                    yield return Direction.Down;
+                }
+
+                if (offset.Y < 0)
+                {
+                    yield return Direction.Up;
+                }
             }
-
-            if (direction == Direction.Down)
-            {
-                return this.MoveDown();
-            }
-
-            if (direction == Direction.Left)
-            {
-                return this.MoveLeft();
-            }
-
-            if (direction == Direction.Right)
-            {
-                return this.MoveRight();
-            }
-
-            throw new ArgumentException($"Unknown direction {direction}.", nameof(direction));
-        }
-
-        public MapCoordinate MoveLeft()
-        {
-            var coordinate = this with { X = this.X - 1 };
-            return coordinate;
-        }
-
-        public MapCoordinate MoveRight()
-        {
-            var coordinate = this with { X = this.X + 1 };
-            return coordinate;
-        }
-
-        public MapCoordinate MoveUp()
-        {
-            var coordinate = this with { Y = this.Y - 1 };
-            return coordinate;
-        }
-
-        public MapCoordinate MoveDown()
-        {
-            var coordinate = this with { Y = this.Y + 1 };
-            return coordinate;
         }
     }
 }
