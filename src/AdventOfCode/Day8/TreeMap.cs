@@ -3,55 +3,31 @@
     public class TreeMap
     {
         private readonly List<Tree> trees;
-        
-        public TreeMap()
-            : this(Enumerable.Empty<Tree>())
-        {
-        }
 
         public TreeMap(IEnumerable<Tree> trees)
         {
             this.trees = trees.ToList();
-            this.Columns = this.trees.Max(t => t.Coordinate.X);
-            this.Rows = this.trees.Max(t => t.Coordinate.Y);
+            this.Size = new MapSize()
+            {
+                Columns = this.trees.Max(t => t.Coordinate.X),
+                Rows = this.trees.Max(t => t.Coordinate.Y),
+            };
         }
 
-        public int Columns { get; }
-
-        public int Rows { get; }
+        public MapSize Size { get; }
 
         public IEnumerable<int> GetScenicScores()
         {
             foreach (var tree in this.trees)
             {
-                if (tree.Coordinate.Y == 1)
+                if (tree.IsOnEdge(this.Size))
                 {
                     yield return 0;
                     continue;
                 }
 
-                if (tree.Coordinate.Y > 1 && tree.Coordinate.Y < this.Rows)
-                {
-                    if (tree.Coordinate.X == 1)
-                    {
-                        yield return 0;
-                        continue;
-                    }
-                    
-                    if (tree.Coordinate.X == this.Columns)
-                    {
-                        yield return 0;
-                        continue;
-                    }
-
-                    var scenicScore = this.GetScenicScore(tree);
-                    yield return scenicScore;
-                }
-
-                if (tree.Coordinate.Y == this.Rows)
-                {
-                    yield return 0;
-                }
+                var scenicScore = this.GetScenicScore(tree);
+                yield return scenicScore;
             }
         }
 
@@ -80,7 +56,9 @@
 
         private IEnumerable<Tree> GetSmallerTrees(Tree tree, Direction direction)
         {
-            var smallerTrees = this.GetTrees(tree, direction).TakeWhile(t => t.Height < tree.Height);
+            var smallerTrees = this.GetTrees(tree, direction)
+                .TakeWhile(t => t.Height < tree.Height);
+            
             return smallerTrees;
         }
 
@@ -88,35 +66,13 @@
         {
             foreach (var tree in this.trees)
             {
-                if (tree.Coordinate.Y == 1)
+                if (tree.IsOnEdge(this.Size))
                 {
                     yield return tree;
                     continue;
                 }
                 
-                if (tree.Coordinate.Y > 1 && tree.Coordinate.Y < this.Rows)
-                {
-                    if (tree.Coordinate.X == 1)
-                    {
-                        yield return tree;
-                        continue;
-                    }
-                    
-                    if (tree.Coordinate.X == this.Columns)
-                    {
-                        yield return tree;
-                        continue;
-                    }
-
-                    if (this.IsTallest(tree))
-                    {
-                        yield return tree;
-                        continue;
-                    }
-                }
-
-                // Bottom row
-                if (tree.Coordinate.Y == this.Rows)
+                if (this.IsTallest(tree))
                 {
                     yield return tree;
                 }
@@ -153,41 +109,42 @@
             return this.GetTrees(tree, direction).All(t => t.Height < tree.Height);
         }
 
-        private IEnumerable<Tree> GetTrees(Tree tree, Direction direction)
+        private IEnumerable<Tree> GetTrees(Tree tree, Direction lookingDirection)
         {
-            if (direction == Direction.North)
+            var treesInLookingDirection = Enumerable.Empty<Tree>();
+            if (lookingDirection == Direction.North)
             {
-                return this.trees
+                treesInLookingDirection = this.trees
                     .Where(t => t.Coordinate.X == tree.Coordinate.X)
                     .Where(t => t.Coordinate.Y < tree.Coordinate.Y)
                     .OrderByDescending(t => t.Coordinate.Y);
             }
             
-            if (direction == Direction.East)
+            if (lookingDirection == Direction.East)
             {
-                return this.trees
+                treesInLookingDirection = this.trees
                     .Where(t => t.Coordinate.Y == tree.Coordinate.Y)
                     .Where(t => t.Coordinate.X > tree.Coordinate.X)
                     .OrderBy(t => t.Coordinate.X);
             }
             
-            if (direction == Direction.South)
+            if (lookingDirection == Direction.South)
             {
-                return this.trees
+                treesInLookingDirection = this.trees
                     .Where(t => t.Coordinate.X == tree.Coordinate.X)
                     .Where(t => t.Coordinate.Y > tree.Coordinate.Y)
                     .OrderBy(t => t.Coordinate.Y);
             }
             
-            if (direction == Direction.West)
+            if (lookingDirection == Direction.West)
             {
-                return this.trees
+                treesInLookingDirection = this.trees
                     .Where(t => t.Coordinate.Y == tree.Coordinate.Y)
                     .Where(t => t.Coordinate.X < tree.Coordinate.X)
                     .OrderByDescending(t => t.Coordinate.X);
             }
-            
-            return Enumerable.Empty<Tree>();
+
+            return treesInLookingDirection;
         }
     }
 }

@@ -20,11 +20,8 @@
 
             using (var reader = new TreeMapReader(stream, true))
             {
-                var trees = await reader.ReadAllAsync(ct)
-                    .ToArrayAsync(ct)
-                    .ConfigureAwait(false);
-                var map = new TreeMap(trees);
-                var visibleTrees = map.GetVisibleTrees();
+                var treeMap = await reader.ReadAsync(ct).ConfigureAwait(false);
+                var visibleTrees = treeMap.GetVisibleTrees();
                 return visibleTrees.Count();
             }
         }

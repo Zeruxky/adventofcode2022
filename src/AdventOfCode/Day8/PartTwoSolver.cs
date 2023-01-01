@@ -20,11 +20,8 @@
 
             using (var reader = new TreeMapReader(stream, true))
             {
-                var trees = await reader.ReadAllAsync(ct)
-                    .ToArrayAsync(ct)
-                    .ConfigureAwait(false);
-                var map = new TreeMap(trees);
-                var scenicScore = map.GetScenicScores().Max();
+                var trees = await reader.ReadAsync(ct).ConfigureAwait(false);
+                var scenicScore = trees.GetScenicScores().Max();
                 return scenicScore;
             }
         }
