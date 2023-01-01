@@ -2,9 +2,9 @@
 {
     public record MapCoordinate
     {
-        public int X { get; init; }
+        public int X { get; init; } = 0;
 
-        public int Y { get; init; }
+        public int Y { get; init; } = 0;
 
         public static MapCoordinate operator -(MapCoordinate left, MapCoordinate right)
         {
