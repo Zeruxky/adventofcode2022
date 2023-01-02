@@ -8,6 +8,7 @@ namespace AdventOfCode.Day10
         {
             services.AddSingleton<IDayRunner, DayTenRunner>();
             services.AddSingleton<ISolver, PartOneSolver>();
+            services.AddSingleton<ISolver, PartTwoSolver>();
 
             return services;
         }

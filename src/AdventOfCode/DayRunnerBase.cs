@@ -7,8 +7,8 @@ namespace AdventOfCode
         private readonly string path;
         private readonly string directory;
         private readonly ISolver[] solvers;
-        private readonly IAnsiConsole console;
         private readonly IInputDownloader downloader;
+        protected readonly IAnsiConsole console;
 
         protected DayRunnerBase(Day day, IEnumerable<ISolver> solvers, IAnsiConsole console, IInputDownloader downloader)
         {
@@ -29,25 +29,35 @@ namespace AdventOfCode
             if (part == Part.One || part == Part.All)
             {
                 var solver = this.solvers.OfType<ISolver<T1>>().First(s => s.Part == Part.One);
-                await using (var file = this.GetInputFile())
-                {
-                    var result = await solver.SolveAsync(file, ct).ConfigureAwait(false);
-                    this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}: {result}");
-                }
+                await this.SolvePartOneAsync(solver, ct).ConfigureAwait(false);
             }
 
             if (part == Part.Two || part == Part.All)
             {
                 var solver = this.solvers.OfType<ISolver<T2>>().First(s => s.Part == Part.Two);
-                await using (var file = this.GetInputFile())
-                {
-                    var result = await solver.SolveAsync(file, ct).ConfigureAwait(false);
-                    this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}: {result}");
-                }
+                await this.SolvePartTwoAsync(solver, ct).ConfigureAwait(false);
             }
         }
 
-        private Stream GetInputFile()
+        protected virtual async Task SolvePartOneAsync(ISolver<T1> solver, CancellationToken ct)
+        {
+            await using (var file = this.GetInputFile())
+            {
+                var result = await solver.SolveAsync(file, ct).ConfigureAwait(false);
+                this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}: {result}");
+            }
+        }
+        
+        protected virtual async Task SolvePartTwoAsync(ISolver<T2> solver, CancellationToken ct)
+        {
+            await using (var file = this.GetInputFile())
+            {
+                var result = await solver.SolveAsync(file, ct).ConfigureAwait(false);
+                this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}: {result}");
+            }
+        }
+
+        protected Stream GetInputFile()
         {
             return new FileStream(this.path, FileMode.Open, FileAccess.Read, FileShare.None);
         }
