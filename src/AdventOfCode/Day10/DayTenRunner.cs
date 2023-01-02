@@ -1,4 +1,6 @@
-﻿using Spectre.Console;
+﻿using System.Text;
+using Microsoft.Extensions.Primitives;
+using Spectre.Console;
 
 namespace AdventOfCode.Day10
 {
@@ -14,11 +16,23 @@ namespace AdventOfCode.Day10
             await using (var file = this.GetInputFile())
             {
                 var lines = await solver.SolveAsync(file, ct).ConfigureAwait(false);
-                this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}:");
+                var stringBuilder = new StringBuilder();
                 foreach (var line in lines)
                 {
-                    this.console.WriteLine(line);
+                    var formattedCharacters = line.Select(c =>
+                    {
+                        var content = c == '#'
+                            ? $"[lime]{c}[/]"
+                            : c.ToString();
+
+                        return content;
+                    });
+
+                    stringBuilder.AppendJoin(string.Empty, formattedCharacters);
+                    stringBuilder.AppendLine();
                 }
+                this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}:");
+                this.console.Markup(stringBuilder.ToString());
             }
         }
     }

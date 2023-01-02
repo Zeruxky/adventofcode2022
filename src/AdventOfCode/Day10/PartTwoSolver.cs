@@ -5,24 +5,6 @@ namespace AdventOfCode.Day10
 {
     public class PartTwoSolver : ISolver<IEnumerable<string>>
     {
-        private readonly CPU cpu;
-        private readonly CRT crt;
-
-        public PartTwoSolver()
-        {
-            var registers = new[]
-            {
-                new Register()
-                {
-                    Id = 'X',
-                },
-            };
-
-            var channel = Channel.CreateUnbounded<int>();
-            this.cpu = new CPU(registers, channel.Writer);
-            this.crt = new CRT(channel.Reader);
-        }
-
         public Day Day => Day.Ten;
 
         public Part Part => Part.Two;
@@ -41,16 +23,28 @@ namespace AdventOfCode.Day10
 
             using (var reader = new InstructionReader(stream, true))
             {
-                var crtTask = this.crt.RunAsync(ct);
+                var registers = new[]
+                {
+                    new Register()
+                    {
+                        Id = 'X',
+                    },
+                };
+
+                var channel = Channel.CreateUnbounded<int>();
+                var cpu = new CPU(registers, channel.Writer);
+                var crt = new CRT(channel.Reader);
+                
+                var crtTask = crt.RunAsync(ct);
                 var instructions = reader.ReadAllAsync(ct);
                 await foreach (var instruction in instructions.WithCancellation(ct).ConfigureAwait(false))
                 {
-                    await this.cpu.ExecuteAsync(instruction, ct).ConfigureAwait(false);
+                    await cpu.ExecuteAsync(instruction, ct).ConfigureAwait(false);
                 }
 
-                this.cpu.Stop();
+                cpu.Stop();
                 await crtTask.ConfigureAwait(false);
-                var displayLines = await this.crt.PrintAsync(ct)
+                var displayLines = await crt.PrintAsync(ct)
                     .ToArrayAsync(ct)
                     .ConfigureAwait(false);
 
