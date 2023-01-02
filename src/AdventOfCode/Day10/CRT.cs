@@ -1,95 +1,41 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
+using Microsoft.Extensions.Primitives;
 
 namespace AdventOfCode.Day10
 {
-    public record CRT : IAsyncDisposable
+    public record CRT
     {
-        private readonly ChannelReader<int> spritePositions;
         private readonly Sprite sprite;
-        private readonly Stream display;
-        private readonly StreamWriter displayWriter;
+        private readonly StringBuilder display;
         private int position;
-        private bool disposed = false;
 
-        public CRT(ChannelReader<int> spritePositions)
+        public CRT()
         {
-            this.spritePositions = spritePositions;
             this.sprite = new Sprite();
-            this.display = new MemoryStream();
-            this.displayWriter = new StreamWriter(this.display, Encoding.UTF8);
+            this.display = new StringBuilder();
         }
 
-        public async Task RunAsync(CancellationToken ct)
+        public IEnumerable<string> Draw(IEnumerable<RegisterMeasurement> registerMeasurements)
         {
-            await foreach (var spritePosition in this.spritePositions.ReadAllAsync(ct).ConfigureAwait(false))
+            foreach (var registerMeasurement in registerMeasurements)
             {
-                await this.DrawAsync(spritePosition, ct).ConfigureAwait(false);
-            }
-        }
+                sprite.MoveTo(registerMeasurement.Value);
+                var characterToWrite = sprite.Pixels.Contains(position)
+                    ? '#'
+                    : '.';
 
-        private async Task DrawAsync(int spritePosition, CancellationToken ct)
-        {
-            sprite.MoveTo(spritePosition);
-
-            var characterToWrite = sprite.Pixels.Contains(position)
-                ? "#"
-                : ".";
-
-            await this.displayWriter.WriteAsync(characterToWrite).ConfigureAwait(false);
-            this.position++;
-            if (this.position == 40)
-            {
-                await this.displayWriter.WriteAsync(Environment.NewLine.AsMemory(), ct).ConfigureAwait(false);
-                await this.displayWriter.FlushAsync().ConfigureAwait(false);
-                this.position = 0;
-            }
-        }
-
-        public async IAsyncEnumerable<string> PrintAsync([EnumeratorCancellation] CancellationToken ct)
-        {
-            this.display.Seek(0, SeekOrigin.Begin);
-            using (var reader = new StreamReader(this.display, Encoding.UTF8, leaveOpen: true))
-            {
-                while (true)
+                this.display.Append(characterToWrite);
+                this.position++;
+                if (this.position == 40)
                 {
-                    ct.ThrowIfCancellationRequested();
-                    if (reader.EndOfStream)
-                    {
-                        yield break;
-                    }
-
-                    var line = await reader.ReadLineAsync().ConfigureAwait(false);
-                    if (line is null)
-                    {
-                        yield break;
-                    }
-
-                    yield return line;
+                    var displayLine = this.display.ToString();
+                    yield return displayLine;
+                    this.display.Clear();
+                    this.position = 0;
                 }
             }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await this.DisposeAsync(true).ConfigureAwait(false);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual async ValueTask DisposeAsync(bool disposing)
-        {
-            if (this.disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                await this.displayWriter.DisposeAsync().ConfigureAwait(false);
-            }
-
-            this.disposed = true;
         }
     }
 }

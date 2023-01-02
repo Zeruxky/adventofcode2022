@@ -2,16 +2,23 @@
 
 namespace AdventOfCode.Day10
 {
+    public record RegisterMeasurement
+    {
+        public int Cycle { get; init; }
+        
+        public int Value { get; init; }
+    }
+
     public record CPU
     {
-        private readonly ChannelWriter<int> channelWriter;
+        private readonly List<RegisterMeasurement> registerMeasurements;
         private readonly Dictionary<char, Register> registers;
         private readonly List<int> cyclesOfInterest;
         private readonly List<SignalStrengthMeasurement> measurements;
 
-        public CPU(IEnumerable<Register> registers, ChannelWriter<int> channelWriter)
+        public CPU(IEnumerable<Register> registers)
         {
-            this.channelWriter = channelWriter;
+            this.registerMeasurements = new List<RegisterMeasurement>();
             this.registers = registers.ToDictionary(r => r.Id, r => r);
             this.measurements = new List<SignalStrengthMeasurement>();
             this.cyclesOfInterest = new List<int>();
@@ -23,41 +30,49 @@ namespace AdventOfCode.Day10
 
         public int Cycles { get; private set; }
 
-        public IReadOnlyCollection<SignalStrengthMeasurement> Measurements => measurements;
+        public IReadOnlyCollection<SignalStrengthMeasurement> Measurements => this.measurements;
 
-        public void Stop()
-        {
-            this.channelWriter.Complete();
-        }
+        public IReadOnlyCollection<RegisterMeasurement> RegisterHistory => this.registerMeasurements;
 
-        public async Task ExecuteAsync(Instruction instruction, CancellationToken ct)
+        public void Execute(Instruction instruction)
         {
             if (instruction.Type == InstructionType.NoOp)
             {
-                await this.IncreaseCycleAsync(ct).ConfigureAwait(false);
+                this.IncreaseCycle();
             }
 
             if (instruction.Type == InstructionType.AddX)
             {
-                await this.IncreaseCycleAsync(ct).ConfigureAwait(false);
-                await this.IncreaseCycleAsync(ct).ConfigureAwait(false);
+                this.IncreaseCycle();
+                this.IncreaseCycle();
                 var register = this.registers['X'];
                 register.Add(instruction.Value);
             }
         }
 
-        private async Task IncreaseCycleAsync(CancellationToken ct)
+        private void IncreaseCycle()
         {
             this.Cycles++;
-            await this.channelWriter.WriteAsync(this.registers['X'].Value, ct).ConfigureAwait(false);
+            var xRegister = this.registers['X'];
+            this.TakeMeasurementOfRegister(xRegister);
             if (this.cyclesOfInterest.Contains(this.Cycles))
             {
-                var addXRegister = this.registers['X'];
-                this.TakeMeasurement(addXRegister);
+                this.TakeMeasurementOfSignalStrength(xRegister);
             }
         }
 
-        private void TakeMeasurement(Register register)
+        private void TakeMeasurementOfRegister(Register register)
+        {
+            var measurement = new RegisterMeasurement()
+            {
+                Cycle = this.Cycles,
+                Value = register.Value,
+            };
+            
+            this.registerMeasurements.Add(measurement);
+        }
+
+        private void TakeMeasurementOfSignalStrength(Register register)
         {
             var measurement = new SignalStrengthMeasurement()
             {

@@ -4,7 +4,23 @@ namespace AdventOfCode.Day10
 {
     public class PartOneSolver : ISolver<int>
     {
+        private readonly CPU cpu;
+
+        public PartOneSolver()
+        {
+            var registers = new[]
+            {
+                new Register()
+                {
+                    Id = 'X',
+                },
+            };
+            
+            this.cpu = new CPU(registers);
+        }
+        
         public Day Day => Day.Ten;
+        
         public Part Part => Part.One;
         
         public async Task<int> SolveAsync(Stream stream, CancellationToken ct)
@@ -21,19 +37,11 @@ namespace AdventOfCode.Day10
 
             using (var reader = new InstructionReader(stream, true))
             {
-                var registers = new[]
-                {
-                    new Register()
-                    {
-                        Id = 'X',
-                    },
-                };
-            
-                var cpu = new CPU(registers, Channel.CreateUnbounded<int>());
+                
                 var instructions = reader.ReadAllAsync(ct);
                 await foreach (var instruction in instructions.WithCancellation(ct).ConfigureAwait(false))
                 {
-                    await cpu.ExecuteAsync(instruction, ct).ConfigureAwait(false);
+                    cpu.Execute(instruction);
                 }
 
                 var totalSignalStrength = cpu.Measurements.Sum(m => m.Value);
