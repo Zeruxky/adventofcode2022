@@ -2,6 +2,7 @@
 
 using AdventOfCode;
 using AdventOfCode.Day1;
+using AdventOfCode.Day10;
 using AdventOfCode.Day2;
 using AdventOfCode.Day3;
 using AdventOfCode.Day4;
@@ -23,6 +24,7 @@ services.AddDaySix();
 services.AddDaySeven();
 services.AddDayEight();
 services.AddDayNine();
+services.AddDayTen();
 services.AddConsole();
 services.AddInputDownloader();
 
