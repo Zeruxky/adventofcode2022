@@ -15,24 +15,27 @@ namespace AdventOfCode.Day10
         {
             await using (var file = this.GetInputFile())
             {
-                var lines = await solver.SolveAsync(file, ct).ConfigureAwait(false);
-                var stringBuilder = new StringBuilder();
-                foreach (var line in lines)
+                var result = await solver.SolveAsync(file, ct).ConfigureAwait(false);
+                var displayLines = result.ToArray();
+                var width = displayLines.Max(x => x.Length);
+                var height = displayLines.Length;
+                var canvas = new Canvas(width, height);
+                var lineCount = 0;
+                foreach (var displayLine in displayLines)
                 {
-                    var formattedCharacters = line.Select(c =>
+                    for (var i = 0; i < canvas.Width; i++)
                     {
-                        var content = c == '#'
-                            ? $"[lime]{c}[/]"
-                            : c.ToString();
+                        var character = displayLine[i];
+                        if (character == '#')
+                        {
+                            canvas.SetPixel(i, lineCount, Color.Red);
+                        }
+                    }
 
-                        return content;
-                    });
-
-                    stringBuilder.AppendJoin(string.Empty, formattedCharacters);
-                    stringBuilder.AppendLine();
+                    lineCount++;
                 }
-                this.console.WriteLine($"Result of Day {solver.Day} Part {solver.Part}:");
-                this.console.Markup(stringBuilder.ToString());
+                
+                this.console.Write(canvas);
             }
         }
     }
